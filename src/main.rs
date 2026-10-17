@@ -63,8 +63,10 @@ fn update(rl: &RaylibHandle, characters: &mut [Character]) {
 
 fn draw(d: &mut RaylibDrawHandle, characters: &[Character]) {
     d.clear_background(Color::WHITE);
+    let mut ordered_characters: Vec<&Character> = characters.into_iter().collect();
+    ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
 
-    for character in characters.iter() {
+    for character in ordered_characters.iter() {
         let color = match character.character_type {
             CharacterType::Player => Color::GREEN,
             CharacterType::Enemy => Color::RED,
