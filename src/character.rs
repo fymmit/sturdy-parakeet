@@ -9,7 +9,7 @@ pub struct Character {
     pub character_type: CharacterType,
     pub position: Vector2,
     movement_speed: f32,
-    travel_target_position: Vector2,
+    pub travel_target_position: Vector2,
     is_traveling: bool,
 }
 

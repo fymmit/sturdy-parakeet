@@ -112,5 +112,19 @@ fn draw(d: &mut RaylibDrawHandle, characters: &[Character], obstacles: &[Obstacl
         );
     }
 
+    for character in characters.iter() {
+        let color = match character.character_type {
+            CharacterType::Player => Color::LIME,
+            CharacterType::Enemy => Color::HOTPINK,
+        };
+        d.draw_line(
+            character.position.x as i32,
+            character.position.y as i32,
+            character.travel_target_position.x as i32,
+            character.travel_target_position.y as i32,
+            color,
+        );
+    }
+
     d.draw_fps(4, 4);
 }
