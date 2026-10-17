@@ -96,16 +96,21 @@ struct Character {
 }
 
 impl Character {
+    const TRAVEL_THRESHOLD: f32 = 5.0;
+
     fn set_target_position(&mut self, target: Vector2) {
-        self.target_position = target;
-        self.is_traveling = true;
+        if (target - self.position).length() >= Self::TRAVEL_THRESHOLD {
+            self.target_position = target;
+            self.is_traveling = true;
+        }
     }
+
     fn move_character(&mut self, delta: f32) {
         if self.is_traveling {
             let difference = self.target_position - self.position;
             let direction = difference.normalize();
             self.position += direction * self.movement_speed * delta;
-            if difference.length() <= 5.0 {
+            if difference.length() <= Self::TRAVEL_THRESHOLD {
                 self.is_traveling = false;
             }
         }
