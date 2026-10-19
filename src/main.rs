@@ -12,9 +12,12 @@ struct GameState {
     is_debug: bool,
 }
 
+const WINDOW_WIDTH: i32 = 800;
+const WINDOW_HEIGHT: i32 = 620;
+
 fn main() {
     let (mut rl, thread) = raylib::init()
-        .size(800, 620)
+        .size(WINDOW_WIDTH, WINDOW_HEIGHT)
         .title("Hello, raylib-rs")
         .build();
 
@@ -33,41 +36,34 @@ fn main() {
         is_debug: true,
     };
 
-    let player = Character::new(
-        CharacterType::Player,
-        Vector2::new(
-            (rl.get_render_width() / 2) as f32,
-            (rl.get_render_height() / 2) as f32,
-        ),
-        200.0,
-    );
+    let player = Character::new(CharacterType::Player, Vector2::zero(), 200.0);
     let enemy = Character::new(CharacterType::Enemy, Vector2::new(100.0, 100.0), 100.0);
 
     game_state.characters.push(player);
     game_state.characters.push(enemy);
 
     game_state.obstacles.push(Obstacle {
-        position: Vector2::new(200.0, 200.0),
+        position: Vector2::new(0.0, 200.0),
         radius: 32.0,
     });
     game_state.obstacles.push(Obstacle {
-        position: Vector2::new(280.0, 200.0),
+        position: Vector2::new(80.0, 200.0),
         radius: 32.0,
     });
     game_state.obstacles.push(Obstacle {
-        position: Vector2::new(400.0, 100.0),
+        position: Vector2::new(200.0, 100.0),
         radius: 32.0,
     });
     game_state.obstacles.push(Obstacle {
-        position: Vector2::new(464.0, 200.0),
+        position: Vector2::new(264.0, 200.0),
         radius: 32.0,
     });
     game_state.obstacles.push(Obstacle {
-        position: Vector2::new(400.0, 300.0),
+        position: Vector2::new(200.0, 300.0),
         radius: 32.0,
     });
     game_state.obstacles.push(Obstacle {
-        position: Vector2::new(464.0, 400.0),
+        position: Vector2::new(264.0, 400.0),
         radius: 32.0,
     });
 
@@ -87,8 +83,8 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
     let player_pos = game_state.characters.first().unwrap().position;
 
     game_state.camera.target = Vector2 {
-        x: player_pos.x - rl.get_screen_width() as f32 / 2.0,
-        y: player_pos.y - rl.get_screen_height() as f32 / 2.0,
+        x: player_pos.x - WINDOW_WIDTH as f32 / 2.0,
+        y: player_pos.y - WINDOW_HEIGHT as f32 / 2.0,
     };
 
     if rl.is_key_pressed(KeyboardKey::KEY_O) {
