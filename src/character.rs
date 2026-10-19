@@ -93,40 +93,40 @@ impl Character {
                                 obstacle.radius + TANGENT_OFFSET,
                             );
 
-                            if let Some(from_points) = from_tangents {
-                                if let Some(to_points) = to_tangents {
-                                    let left_side_length = waypoint.distance(to_points[0])
-                                        + to_points[0].distance(from_points[1])
-                                        + from_points[1].distance(previous_point);
-                                    let right_side_length = waypoint.distance(to_points[1])
-                                        + to_points[1].distance(from_points[0])
-                                        + from_points[0].distance(previous_point);
-                                    let left_points = [to_points[0], from_points[1]];
-                                    let right_points = [to_points[1], from_points[0]];
-                                    let mut points = if right_side_length < left_side_length {
-                                        [right_points, left_points]
-                                    } else {
-                                        [left_points, right_points]
-                                    };
+                            if let (Some(from_points), Some(to_points)) =
+                                (from_tangents, to_tangents)
+                            {
+                                let left_side_length = waypoint.distance(to_points[0])
+                                    + to_points[0].distance(from_points[1])
+                                    + from_points[1].distance(previous_point);
+                                let right_side_length = waypoint.distance(to_points[1])
+                                    + to_points[1].distance(from_points[0])
+                                    + from_points[0].distance(previous_point);
+                                let left_points = [to_points[0], from_points[1]];
+                                let right_points = [to_points[1], from_points[0]];
+                                let mut points = if right_side_length < left_side_length {
+                                    [right_points, left_points]
+                                } else {
+                                    [left_points, right_points]
+                                };
 
-                                    if obstacles.iter().any(|o| {
-                                        raylib::collision::check_collision_point_circle(
-                                            points[0][0],
-                                            o.position,
-                                            o.radius + self.radius,
-                                        ) || raylib::collision::check_collision_point_circle(
-                                            points[0][1],
-                                            o.position,
-                                            o.radius + self.radius,
-                                        )
-                                    }) {
-                                        points.swap(0, 1);
-                                    }
-
-                                    new_waypoints = Some(points[0]);
-                                    new_waypoint_index = i;
-                                    break 'waypoints;
+                                if obstacles.iter().any(|o| {
+                                    raylib::collision::check_collision_point_circle(
+                                        points[0][0],
+                                        o.position,
+                                        o.radius + self.radius,
+                                    ) || raylib::collision::check_collision_point_circle(
+                                        points[0][1],
+                                        o.position,
+                                        o.radius + self.radius,
+                                    )
+                                }) {
+                                    points.swap(0, 1);
                                 }
+
+                                new_waypoints = Some(points[0]);
+                                new_waypoint_index = i;
+                                break 'waypoints;
                             }
                         }
                     }
