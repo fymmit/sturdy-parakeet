@@ -8,6 +8,7 @@ use raylib::prelude::*;
 struct GameState {
     characters: Vec<Character>,
     obstacles: Vec<Obstacle>,
+    camera: Camera2D,
     is_debug: bool,
 }
 
@@ -19,9 +20,16 @@ fn main() {
 
     rl.set_target_fps(150);
 
+    let camera = camera::Camera2D {
+        rotation: 0.0,
+        offset: Vector2::zero(),
+        zoom: 1.0,
+        target: Vector2::zero(),
+    };
     let mut game_state = GameState {
         characters: vec![],
         obstacles: vec![],
+        camera: camera,
         is_debug: true,
     };
 
@@ -75,7 +83,13 @@ fn main() {
 fn update(rl: &RaylibHandle, game_state: &mut GameState) {
     let delta = rl.get_frame_time();
     let mouse_pos = rl.get_mouse_position();
+    let mouse_pos = rl.get_screen_to_world2D(mouse_pos, game_state.camera);
     let player_pos = game_state.characters.first().unwrap().position;
+
+    game_state.camera.target = Vector2 {
+        x: player_pos.x - rl.get_screen_width() as f32 / 2.0,
+        y: player_pos.y - rl.get_screen_height() as f32 / 2.0,
+    };
 
     if rl.is_key_pressed(KeyboardKey::KEY_O) {
         game_state.is_debug = !game_state.is_debug;
@@ -128,71 +142,73 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     let mut ordered_characters: Vec<&Character> = game_state.characters.iter().collect();
     ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
 
-    for obstacle in game_state.obstacles.iter() {
-        d.draw_circle(
-            obstacle.position.x as i32,
-            obstacle.position.y as i32,
-            obstacle.radius,
-            Color::BLACK,
-        );
-    }
-
-    for character in ordered_characters.iter() {
-        let color = match character.character_type {
-            CharacterType::Player => Color::GREEN,
-            CharacterType::Enemy => Color::RED,
-        };
-        d.draw_circle(
-            character.position.x as i32,
-            character.position.y as i32,
-            character.radius,
-            color,
-        );
-    }
-
-    if game_state.is_debug {
+    d.draw_mode2D(game_state.camera, |mut mode_2d| {
         for obstacle in game_state.obstacles.iter() {
-            d.draw_circle(
+            mode_2d.draw_circle(
                 obstacle.position.x as i32,
                 obstacle.position.y as i32,
-                obstacle.radius + ordered_characters.first().unwrap().radius,
-                Color::BLACK.alpha(0.5),
+                obstacle.radius,
+                Color::BLACK,
             );
         }
-        for character in game_state.characters.iter() {
+
+        for character in ordered_characters.iter() {
             let color = match character.character_type {
-                CharacterType::Player => Color::LIME,
-                CharacterType::Enemy => Color::HOTPINK,
+                CharacterType::Player => Color::GREEN,
+                CharacterType::Enemy => Color::RED,
             };
-            for (i, waypoint) in character.path.iter().enumerate() {
-                if i == 0 {
-                    d.draw_line(
-                        character.position.x as i32,
-                        character.position.y as i32,
-                        waypoint.x as i32,
+            mode_2d.draw_circle(
+                character.position.x as i32,
+                character.position.y as i32,
+                character.radius,
+                color,
+            );
+        }
+
+        if game_state.is_debug {
+            for obstacle in game_state.obstacles.iter() {
+                mode_2d.draw_circle(
+                    obstacle.position.x as i32,
+                    obstacle.position.y as i32,
+                    obstacle.radius + ordered_characters.first().unwrap().radius,
+                    Color::BLACK.alpha(0.5),
+                );
+            }
+            for character in game_state.characters.iter() {
+                let color = match character.character_type {
+                    CharacterType::Player => Color::LIME,
+                    CharacterType::Enemy => Color::HOTPINK,
+                };
+                for (i, waypoint) in character.path.iter().enumerate() {
+                    if i == 0 {
+                        mode_2d.draw_line(
+                            character.position.x as i32,
+                            character.position.y as i32,
+                            waypoint.x as i32,
+                            waypoint.y as i32,
+                            color,
+                        );
+                    } else if i < character.path.len() {
+                        mode_2d.draw_line(
+                            character.path.get(i - 1).unwrap().x as i32,
+                            character.path.get(i - 1).unwrap().y as i32,
+                            waypoint.x as i32,
+                            waypoint.y as i32,
+                            color,
+                        );
+                    }
+                    mode_2d.draw_circle(waypoint.x as i32, waypoint.y as i32, 4.0, color);
+                    mode_2d.draw_text(
+                        format!("{}, {}", waypoint.x, waypoint.y).as_str(),
+                        waypoint.x as i32 + 12,
                         waypoint.y as i32,
-                        color,
-                    );
-                } else if i < character.path.len() {
-                    d.draw_line(
-                        character.path.get(i - 1).unwrap().x as i32,
-                        character.path.get(i - 1).unwrap().y as i32,
-                        waypoint.x as i32,
-                        waypoint.y as i32,
+                        16,
                         color,
                     );
                 }
-                d.draw_circle(waypoint.x as i32, waypoint.y as i32, 4.0, color);
-                d.draw_text(
-                    format!("{}, {}", waypoint.x, waypoint.y).as_str(),
-                    waypoint.x as i32 + 12,
-                    waypoint.y as i32,
-                    16,
-                    color,
-                );
             }
         }
-    }
+    });
 
     d.draw_fps(4, 4);
 }
