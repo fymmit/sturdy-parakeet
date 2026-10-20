@@ -1,7 +1,10 @@
 mod character;
+mod chunks;
 mod obstacle;
+mod tile;
 
 use character::{Character, CharacterType};
+use chunks::ChunkManager;
 use obstacle::Obstacle;
 use raylib::prelude::*;
 
@@ -9,6 +12,7 @@ struct GameState {
     characters: Vec<Character>,
     obstacles: Vec<Obstacle>,
     camera: Camera2D,
+    chunk_manager: ChunkManager,
     is_debug: bool,
 }
 
@@ -33,6 +37,7 @@ fn main() {
         characters: vec![],
         obstacles: vec![],
         camera: camera,
+        chunk_manager: ChunkManager::new(),
         is_debug: true,
     };
 
@@ -78,6 +83,11 @@ fn main() {
 
 fn update(rl: &RaylibHandle, game_state: &mut GameState) {
     let delta = rl.get_frame_time();
+
+    if game_state.chunk_manager.chunks.len() == 0 {
+        game_state.chunk_manager.generate_chunk();
+    }
+
     let mouse_pos = rl.get_mouse_position();
     let mouse_pos = rl.get_screen_to_world2D(mouse_pos, game_state.camera);
     let player_pos = game_state.characters.first().unwrap().position;
@@ -135,10 +145,17 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
 
 fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     d.clear_background(Color::WHITE);
+
     let mut ordered_characters: Vec<&Character> = game_state.characters.iter().collect();
     ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
 
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
+        for chunk in game_state.chunk_manager.chunks.iter() {
+            for tile in chunk.tiles.iter() {
+                mode_2d.draw_rectangle_lines(tile.x * 64, tile.y * 64, 64, 64, Color::GRAY);
+            }
+        }
+
         for obstacle in game_state.obstacles.iter() {
             mode_2d.draw_circle(
                 obstacle.position.x as i32,
