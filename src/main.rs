@@ -31,7 +31,7 @@ fn main() {
 
     let camera = camera::Camera2D {
         rotation: 0.0,
-        offset: Vector2::zero(),
+        offset: Vector2::new((WINDOW_WIDTH / 2) as f32, (WINDOW_HEIGHT / 2) as f32),
         zoom: 1.0,
         target: Vector2::zero(),
     };
@@ -97,8 +97,8 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
     }
 
     game_state.camera.target = Vector2 {
-        x: player_pos.x - WINDOW_WIDTH as f32 / 2.0,
-        y: player_pos.y - WINDOW_HEIGHT as f32 / 2.0,
+        x: player_pos.x,
+        y: player_pos.y,
     };
 
     if rl.is_key_pressed(KeyboardKey::KEY_O) {
@@ -107,9 +107,9 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
 
     let mouse_wheel_move = rl.get_mouse_wheel_move();
     if mouse_wheel_move < 0.0 {
-        game_state.camera.zoom += 0.1;
-    } else if mouse_wheel_move > 0.0 {
         game_state.camera.zoom -= 0.1;
+    } else if mouse_wheel_move > 0.0 {
+        game_state.camera.zoom += 0.1;
     }
 
     for character in game_state.characters.iter_mut() {
