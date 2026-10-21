@@ -2,8 +2,9 @@ use raylib::ffi::{Rectangle, Vector2};
 
 use crate::tile::Tile;
 
-pub const CHUNK_SIZE: i32 = 1024;
 pub const CHUNK_TILE_COUNT: i32 = 16;
+pub const CHUNK_TILE_SIZE: i32 = 64;
+pub const CHUNK_SIZE: i32 = CHUNK_TILE_COUNT * CHUNK_TILE_SIZE;
 
 pub struct Chunk {
     pub x: i32,
