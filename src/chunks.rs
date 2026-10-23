@@ -1,6 +1,8 @@
+use rand::prelude::*;
+use rand::rngs::SmallRng;
 use raylib::ffi::{Rectangle, Vector2};
 
-use crate::tile::Tile;
+use crate::tile::{Tile, TileType};
 
 pub const CHUNK_TILE_COUNT: i32 = 16;
 pub const CHUNK_TILE_SIZE: i32 = 64;
@@ -14,18 +16,34 @@ pub struct Chunk {
 
 pub struct ChunkManager {
     pub chunks: Vec<Chunk>,
+    rng: SmallRng,
 }
 
 impl ChunkManager {
     pub fn new() -> Self {
-        Self { chunks: vec![] }
+        let bytes: Vec<u8> = "foobar".bytes().collect();
+        let mut seed: u64 = 0;
+        for b in bytes.iter() {
+            seed += *b as u64;
+        }
+        let rng = SmallRng::seed_from_u64(seed);
+        Self {
+            chunks: vec![],
+            rng,
+        }
     }
     pub fn generate_chunk(&mut self, x_coord: i32, y_coord: i32) {
         println!("Generating a chunk at: {}, {}", x_coord, y_coord);
         let mut tiles: Vec<Tile> = vec![];
         for x in 0..CHUNK_TILE_COUNT {
             for y in 0..CHUNK_TILE_COUNT {
-                tiles.push(Tile { x, y });
+                let tile_should_be_obstacle = self.rng.random_range(0..10) == 0;
+                let tile_type = if tile_should_be_obstacle {
+                    TileType::Obstacle
+                } else {
+                    TileType::Empty
+                };
+                tiles.push(Tile { x, y, tile_type });
             }
         }
 

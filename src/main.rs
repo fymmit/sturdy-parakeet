@@ -8,7 +8,10 @@ use chunks::ChunkManager;
 use obstacle::Obstacle;
 use raylib::prelude::*;
 
-use crate::chunks::{CHUNK_SIZE, CHUNK_TILE_SIZE};
+use crate::{
+    chunks::{CHUNK_SIZE, CHUNK_TILE_SIZE},
+    tile::TileType,
+};
 
 struct GameState {
     characters: Vec<Character>,
@@ -163,13 +166,14 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
         for chunk in game_state.chunk_manager.chunks.iter() {
             for tile in chunk.tiles.iter() {
-                mode_2d.draw_rectangle_lines(
-                    chunk.x + tile.x * CHUNK_TILE_SIZE,
-                    chunk.y + tile.y * CHUNK_TILE_SIZE,
-                    CHUNK_TILE_SIZE,
-                    CHUNK_TILE_SIZE,
-                    Color::GRAY,
-                );
+                let x = chunk.x + tile.x * CHUNK_TILE_SIZE;
+                let y = chunk.y + tile.y * CHUNK_TILE_SIZE;
+                let color = match tile.tile_type {
+                    TileType::Empty => Color::WHITE,
+                    TileType::Obstacle => Color::BLACK,
+                };
+                mode_2d.draw_rectangle(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, color);
+                mode_2d.draw_rectangle_lines(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, Color::GRAY);
             }
         }
 
