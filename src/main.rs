@@ -108,6 +108,15 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
         game_state.is_debug = !game_state.is_debug;
     }
 
+    let left_mouse_clicked = rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT);
+
+    if left_mouse_clicked {
+        let selected_tile = game_state.chunk_manager.get_tile(mouse_pos);
+        if let Some(tile) = selected_tile {
+            println!("{:?}", tile);
+        }
+    }
+
     let mouse_wheel_move = rl.get_mouse_wheel_move();
     if mouse_wheel_move < 0.0 {
         game_state.camera.zoom -= 0.1;
@@ -121,7 +130,7 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
                 if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_RIGHT) {
                     character.position = mouse_pos;
                 }
-                if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
+                if left_mouse_clicked {
                     character.set_travel_target_position(mouse_pos, &game_state.obstacles);
                 }
             }

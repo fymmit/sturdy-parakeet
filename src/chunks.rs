@@ -64,4 +64,18 @@ impl ChunkManager {
             rec.check_collision_point_rec(position)
         })
     }
+    pub fn get_tile(&self, position: Vector2) -> Option<&Tile> {
+        let x = position.x as i32;
+        let y = position.y as i32;
+        let chunk_option = self.chunks.iter().find(|c| {
+            c.x <= x as i32 && x < c.x + CHUNK_SIZE && c.y <= y as i32 && y < c.y + CHUNK_SIZE
+        });
+        let mut tile: Option<&Tile> = None;
+        if let Some(chunk) = chunk_option {
+            let x = (x - chunk.x) / CHUNK_TILE_SIZE;
+            let y = (y - chunk.y) / CHUNK_TILE_SIZE;
+            tile = chunk.tiles.iter().find(|t| t.x == x && t.y == y);
+        }
+        tile
+    }
 }
