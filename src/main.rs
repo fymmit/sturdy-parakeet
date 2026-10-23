@@ -42,7 +42,7 @@ fn main() {
         characters: vec![],
         obstacles: vec![],
         camera: camera,
-        chunk_manager: ChunkManager::new(),
+        chunk_manager: ChunkManager::new("memes"),
         is_debug: true,
     };
 

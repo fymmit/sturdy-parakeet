@@ -20,8 +20,8 @@ pub struct ChunkManager {
 }
 
 impl ChunkManager {
-    pub fn new() -> Self {
-        let bytes: Vec<u8> = "foobar".bytes().collect();
+    pub fn new(seed_str: &str) -> Self {
+        let bytes: Vec<u8> = seed_str.bytes().collect();
         let mut seed: u64 = 0;
         for b in bytes.iter() {
             seed += *b as u64;
