@@ -43,7 +43,13 @@ fn main() {
         is_debug: true,
     };
 
-    let player = Character::new(CharacterType::Player, Vector2::zero(), 200.0);
+    generate_initial_chunks(&mut game_state);
+
+    let player = Character::new(
+        CharacterType::Player,
+        Vector2::new((CHUNK_TILE_SIZE / 2) as f32, (CHUNK_TILE_SIZE / 2) as f32),
+        200.0,
+    );
     let enemy = Character::new(CharacterType::Enemy, Vector2::new(100.0, 100.0), 100.0);
 
     game_state.characters.push(player);
@@ -90,12 +96,6 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
     let mouse_pos = rl.get_screen_to_world2D(mouse_pos, game_state.camera);
     let player_pos = game_state.characters.first().unwrap().position;
 
-    if !game_state.chunk_manager.is_chunk_generated(player_pos) {
-        let x = (player_pos.x / CHUNK_SIZE as f32).floor() as i32 * CHUNK_SIZE;
-        let y = (player_pos.y / CHUNK_SIZE as f32).floor() as i32 * CHUNK_SIZE;
-        game_state.chunk_manager.generate_chunk(x, y);
-    }
-
     game_state.camera.target = Vector2 {
         x: player_pos.x,
         y: player_pos.y,
@@ -106,6 +106,11 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
     }
 
     let left_mouse_clicked = rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT);
+    if left_mouse_clicked {
+        if !game_state.chunk_manager.is_chunk_generated(mouse_pos) {
+            game_state.chunk_manager.generate_chunk(mouse_pos);
+        }
+    }
 
     let selected_tile = game_state.chunk_manager.get_tile(mouse_pos);
 
@@ -263,4 +268,19 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     });
 
     d.draw_fps(4, 4);
+}
+
+fn generate_initial_chunks(game_state: &mut GameState) {
+    game_state
+        .chunk_manager
+        .generate_chunk(Vector2::new(0.0, 0.0));
+    game_state
+        .chunk_manager
+        .generate_chunk(Vector2::new(-1.0, 0.0));
+    game_state
+        .chunk_manager
+        .generate_chunk(Vector2::new(0.0, -1.0));
+    game_state
+        .chunk_manager
+        .generate_chunk(Vector2::new(-1.0, -1.0));
 }

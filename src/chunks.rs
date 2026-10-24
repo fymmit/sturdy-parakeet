@@ -32,7 +32,9 @@ impl ChunkManager {
             rng,
         }
     }
-    pub fn generate_chunk(&mut self, x_coord: i32, y_coord: i32) {
+    pub fn generate_chunk(&mut self, position: Vector2) {
+        let x_coord = (position.x / CHUNK_SIZE as f32).floor() as i32 * CHUNK_SIZE;
+        let y_coord = (position.y / CHUNK_SIZE as f32).floor() as i32 * CHUNK_SIZE;
         println!("Generating a chunk at: {}, {}", x_coord, y_coord);
         let mut tiles: Vec<Tile> = vec![];
         for x in 0..CHUNK_TILE_COUNT {
