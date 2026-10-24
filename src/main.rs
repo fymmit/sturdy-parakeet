@@ -10,6 +10,8 @@ use chunks::{CHUNK_TILE_SIZE, ChunkManager};
 use obstacle::Obstacle;
 use tile::TileType;
 
+use crate::chunks::CHUNK_SIZE;
+
 struct GameState {
     characters: Vec<Character>,
     obstacles: Vec<Obstacle>,
@@ -43,42 +45,22 @@ fn main() {
         is_debug: true,
     };
 
-    generate_initial_chunks(&mut game_state);
+    game_state
+        .chunk_manager
+        .generate_chunk(Vector2::new(0.0, 0.0));
 
     let player = Character::new(
         CharacterType::Player,
-        Vector2::new((CHUNK_TILE_SIZE / 2) as f32, (CHUNK_TILE_SIZE / 2) as f32),
+        Vector2::new(
+            (CHUNK_SIZE / 2 + CHUNK_TILE_SIZE / 2) as f32,
+            (CHUNK_SIZE / 2 + CHUNK_TILE_SIZE / 2) as f32,
+        ),
         200.0,
     );
-    let enemy = Character::new(CharacterType::Enemy, Vector2::new(100.0, 100.0), 100.0);
-
     game_state.characters.push(player);
-    game_state.characters.push(enemy);
 
-    game_state.obstacles.push(Obstacle {
-        position: Vector2::new(0.0, 200.0),
-        radius: 32.0,
-    });
-    game_state.obstacles.push(Obstacle {
-        position: Vector2::new(80.0, 200.0),
-        radius: 32.0,
-    });
-    game_state.obstacles.push(Obstacle {
-        position: Vector2::new(200.0, 100.0),
-        radius: 32.0,
-    });
-    game_state.obstacles.push(Obstacle {
-        position: Vector2::new(264.0, 200.0),
-        radius: 32.0,
-    });
-    game_state.obstacles.push(Obstacle {
-        position: Vector2::new(200.0, 300.0),
-        radius: 32.0,
-    });
-    game_state.obstacles.push(Obstacle {
-        position: Vector2::new(264.0, 400.0),
-        radius: 32.0,
-    });
+    let enemy = Character::new(CharacterType::Enemy, Vector2::new(100.0, 100.0), 100.0);
+    game_state.characters.push(enemy);
 
     while !rl.window_should_close() {
         update(&rl, &mut game_state);
@@ -125,8 +107,7 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
                     character.position = mouse_pos;
                 }
                 if left_mouse_clicked {
-                    let tile_center = game_state.chunk_manager.get_tile_center(mouse_pos);
-                    character.set_travel_target_position(tile_center, &game_state.obstacles);
+                    character.pathfind_to_target(mouse_pos, &game_state.chunk_manager);
                 }
             }
             CharacterType::Enemy => {
@@ -134,11 +115,13 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
                 match last_route_point {
                     Some(&point) => {
                         if (point - player_pos).length() > 50.0 {
-                            character.set_travel_target_position(player_pos, &game_state.obstacles);
+                            character.pathfind_to_target(player_pos, &game_state.chunk_manager);
                         }
                     }
                     None => {
-                        character.set_travel_target_position(player_pos, &game_state.obstacles);
+                        if (character.position - player_pos).length() > 50.0 {
+                            character.pathfind_to_target(player_pos, &game_state.chunk_manager);
+                        }
                     }
                 }
             }
@@ -168,17 +151,15 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
 
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
-        for chunk in game_state.chunk_manager.chunks.iter() {
-            for tile in chunk.tiles.iter() {
-                let x = tile.x;
-                let y = tile.y;
-                let color = match tile.tile_type {
-                    TileType::Empty => Color::WHITE,
-                    TileType::Obstacle => Color::BLACK,
-                };
-                mode_2d.draw_rectangle(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, color);
-                mode_2d.draw_rectangle_lines(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, Color::GRAY);
-            }
+        for tile in game_state.chunk_manager.tiles.iter() {
+            let x = tile.x_position;
+            let y = tile.y_position;
+            let color = match tile.tile_type {
+                TileType::Empty => Color::WHITE,
+                TileType::Obstacle => Color::BLACK,
+            };
+            mode_2d.draw_rectangle(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, color);
+            mode_2d.draw_rectangle_lines(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, Color::GRAY);
         }
 
         for obstacle in game_state.obstacles.iter() {
@@ -204,16 +185,14 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
         }
 
         if game_state.is_debug {
-            for chunk in game_state.chunk_manager.chunks.iter() {
-                for tile in chunk.tiles.iter() {
-                    mode_2d.draw_text(
-                        format!("{},{}", tile.x, tile.y).as_str(),
-                        tile.x,
-                        tile.y,
-                        16,
-                        Color::GRAY,
-                    );
-                }
+            for tile in game_state.chunk_manager.tiles.iter() {
+                mode_2d.draw_text(
+                    format!("{},{}", tile.tile_coords.x, tile.tile_coords.y).as_str(),
+                    tile.x_position,
+                    tile.y_position,
+                    16,
+                    Color::GRAY,
+                );
             }
             for obstacle in game_state.obstacles.iter() {
                 mode_2d.draw_circle(
@@ -260,19 +239,4 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     });
 
     d.draw_fps(4, 4);
-}
-
-fn generate_initial_chunks(game_state: &mut GameState) {
-    game_state
-        .chunk_manager
-        .generate_chunk(Vector2::new(0.0, 0.0));
-    game_state
-        .chunk_manager
-        .generate_chunk(Vector2::new(-1.0, 0.0));
-    game_state
-        .chunk_manager
-        .generate_chunk(Vector2::new(0.0, -1.0));
-    game_state
-        .chunk_manager
-        .generate_chunk(Vector2::new(-1.0, -1.0));
 }
