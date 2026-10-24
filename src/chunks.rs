@@ -47,11 +47,14 @@ impl ChunkManager {
                 };
                 let global_x = x_coord + x * CHUNK_TILE_SIZE;
                 let global_y = y_coord + y * CHUNK_TILE_SIZE;
+                let half_tile_size = CHUNK_TILE_SIZE / 2;
+                let center_x = (global_x + half_tile_size) as f32;
+                let center_y = (global_y + half_tile_size) as f32;
+                let center_position = Vector2::new(center_x, center_y);
                 tiles.push(Tile {
-                    x,
-                    y,
-                    global_x,
-                    global_y,
+                    center_position,
+                    x: global_x,
+                    y: global_y,
                     tile_type,
                 });
             }
@@ -74,18 +77,30 @@ impl ChunkManager {
             rec.check_collision_point_rec(position)
         })
     }
-    pub fn get_tile(&self, position: Vector2) -> Option<&Tile> {
-        let x = position.x as i32;
-        let y = position.y as i32;
-        let chunk_option = self.chunks.iter().find(|c| {
-            c.x <= x as i32 && x < c.x + CHUNK_SIZE && c.y <= y as i32 && y < c.y + CHUNK_SIZE
-        });
-        let mut tile: Option<&Tile> = None;
-        if let Some(chunk) = chunk_option {
-            let x = (x - chunk.x) / CHUNK_TILE_SIZE;
-            let y = (y - chunk.y) / CHUNK_TILE_SIZE;
-            tile = chunk.tiles.iter().find(|t| t.x == x && t.y == y);
-        }
-        tile
+    pub fn get_tile_center(&self, position: Vector2) -> Vector2 {
+        let chunk = self
+            .chunks
+            .iter()
+            .find(|c| {
+                let rec =
+                    Rectangle::new(c.x as f32, c.y as f32, CHUNK_SIZE as f32, CHUNK_SIZE as f32);
+                rec.check_collision_point_rec(position)
+            })
+            .expect("chunk should be generated");
+        let tile = chunk
+            .tiles
+            .iter()
+            .find(|t| {
+                let rec = Rectangle::new(
+                    t.x as f32,
+                    t.y as f32,
+                    CHUNK_TILE_SIZE as f32,
+                    CHUNK_TILE_SIZE as f32,
+                );
+                rec.check_collision_point_rec(position)
+            })
+            .expect("tile should exist");
+
+        tile.center_position
     }
 }

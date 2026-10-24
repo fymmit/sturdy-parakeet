@@ -1,6 +1,6 @@
 use raylib::ffi::Vector2;
 
-use crate::{chunks::Chunk, obstacle::Obstacle};
+use crate::obstacle::Obstacle;
 
 pub enum CharacterType {
     Player,
@@ -151,9 +151,9 @@ impl Character {
         }
     }
 
-    pub fn pathfind_to_target(&mut self, target: Vector2, chunks: &[Chunk]) {
-        let mut route: Vec<Vector2> = vec![];
-    }
+    // pub fn pathfind_to_target(&mut self, target: Vector2, chunks: &[Chunk]) {
+    //     let mut route: Vec<Vector2> = vec![];
+    // }
 
     pub fn move_character(&mut self, delta: f32) {
         if self.is_traveling {

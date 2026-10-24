@@ -6,7 +6,7 @@ mod tile;
 use raylib::prelude::*;
 
 use character::{Character, CharacterType};
-use chunks::{CHUNK_SIZE, CHUNK_TILE_SIZE, ChunkManager};
+use chunks::{CHUNK_TILE_SIZE, ChunkManager};
 use obstacle::Obstacle;
 use tile::TileType;
 
@@ -106,13 +106,10 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
     }
 
     let left_mouse_clicked = rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT);
-    if left_mouse_clicked {
-        if !game_state.chunk_manager.is_chunk_generated(mouse_pos) {
-            game_state.chunk_manager.generate_chunk(mouse_pos);
-        }
-    }
 
-    let selected_tile = game_state.chunk_manager.get_tile(mouse_pos);
+    if !game_state.chunk_manager.is_chunk_generated(mouse_pos) {
+        game_state.chunk_manager.generate_chunk(mouse_pos);
+    }
 
     let mouse_wheel_move = rl.get_mouse_wheel_move();
     if mouse_wheel_move < 0.0 {
@@ -128,13 +125,8 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
                     character.position = mouse_pos;
                 }
                 if left_mouse_clicked {
-                    if let Some(tile) = selected_tile {
-                        println!("{:?}", tile);
-                        let tile_center = tile.get_center();
-                        character.set_travel_target_position(tile_center, &game_state.obstacles);
-                    } else {
-                        character.set_travel_target_position(mouse_pos, &game_state.obstacles);
-                    }
+                    let tile_center = game_state.chunk_manager.get_tile_center(mouse_pos);
+                    character.set_travel_target_position(tile_center, &game_state.obstacles);
                 }
             }
             CharacterType::Enemy => {
@@ -178,8 +170,8 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
         for chunk in game_state.chunk_manager.chunks.iter() {
             for tile in chunk.tiles.iter() {
-                let x = tile.global_x;
-                let y = tile.global_y;
+                let x = tile.x;
+                let y = tile.y;
                 let color = match tile.tile_type {
                     TileType::Empty => Color::WHITE,
                     TileType::Obstacle => Color::BLACK,
@@ -215,9 +207,9 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
             for chunk in game_state.chunk_manager.chunks.iter() {
                 for tile in chunk.tiles.iter() {
                     mode_2d.draw_text(
-                        format!("{},{}", tile.global_x, tile.global_y).as_str(),
-                        tile.global_x,
-                        tile.global_y,
+                        format!("{},{}", tile.x, tile.y).as_str(),
+                        tile.x,
+                        tile.y,
                         16,
                         Color::GRAY,
                     );
