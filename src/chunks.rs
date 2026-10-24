@@ -43,7 +43,15 @@ impl ChunkManager {
                 } else {
                     TileType::Empty
                 };
-                tiles.push(Tile { x, y, tile_type });
+                let global_x = x_coord + x * CHUNK_TILE_SIZE;
+                let global_y = y_coord + y * CHUNK_TILE_SIZE;
+                tiles.push(Tile {
+                    x,
+                    y,
+                    global_x,
+                    global_y,
+                    tile_type,
+                });
             }
         }
 

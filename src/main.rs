@@ -3,15 +3,12 @@ mod chunks;
 mod obstacle;
 mod tile;
 
-use character::{Character, CharacterType};
-use chunks::ChunkManager;
-use obstacle::Obstacle;
 use raylib::prelude::*;
 
-use crate::{
-    chunks::{CHUNK_SIZE, CHUNK_TILE_SIZE},
-    tile::TileType,
-};
+use character::{Character, CharacterType};
+use chunks::{CHUNK_SIZE, CHUNK_TILE_SIZE, ChunkManager};
+use obstacle::Obstacle;
+use tile::TileType;
 
 struct GameState {
     characters: Vec<Character>,
@@ -22,7 +19,7 @@ struct GameState {
 }
 
 const WINDOW_WIDTH: i32 = 800;
-const WINDOW_HEIGHT: i32 = 620;
+const WINDOW_HEIGHT: i32 = 600;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -110,12 +107,7 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
 
     let left_mouse_clicked = rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT);
 
-    if left_mouse_clicked {
-        let selected_tile = game_state.chunk_manager.get_tile(mouse_pos);
-        if let Some(tile) = selected_tile {
-            println!("{:?}", tile);
-        }
-    }
+    let selected_tile = game_state.chunk_manager.get_tile(mouse_pos);
 
     let mouse_wheel_move = rl.get_mouse_wheel_move();
     if mouse_wheel_move < 0.0 {
@@ -131,7 +123,13 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
                     character.position = mouse_pos;
                 }
                 if left_mouse_clicked {
-                    character.set_travel_target_position(mouse_pos, &game_state.obstacles);
+                    if let Some(tile) = selected_tile {
+                        println!("{:?}", tile);
+                        let tile_center = tile.get_center();
+                        character.set_travel_target_position(tile_center, &game_state.obstacles);
+                    } else {
+                        character.set_travel_target_position(mouse_pos, &game_state.obstacles);
+                    }
                 }
             }
             CharacterType::Enemy => {
