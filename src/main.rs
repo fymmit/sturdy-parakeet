@@ -173,8 +173,8 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
         for chunk in game_state.chunk_manager.chunks.iter() {
             for tile in chunk.tiles.iter() {
-                let x = chunk.x + tile.x * CHUNK_TILE_SIZE;
-                let y = chunk.y + tile.y * CHUNK_TILE_SIZE;
+                let x = tile.global_x;
+                let y = tile.global_y;
                 let color = match tile.tile_type {
                     TileType::Empty => Color::WHITE,
                     TileType::Obstacle => Color::BLACK,
@@ -210,9 +210,9 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
             for chunk in game_state.chunk_manager.chunks.iter() {
                 for tile in chunk.tiles.iter() {
                     mode_2d.draw_text(
-                        format!("{},{}", tile.x, tile.y).as_str(),
-                        chunk.x + tile.x * CHUNK_TILE_SIZE,
-                        chunk.y + tile.y * CHUNK_TILE_SIZE,
+                        format!("{},{}", tile.global_x, tile.global_y).as_str(),
+                        tile.global_x,
+                        tile.global_y,
                         16,
                         Color::GRAY,
                     );
