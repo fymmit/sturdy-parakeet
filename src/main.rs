@@ -10,7 +10,7 @@ use chunks::{CHUNK_TILE_SIZE, ChunkManager};
 use obstacle::Obstacle;
 use tile::TileType;
 
-use crate::chunks::CHUNK_SIZE;
+use crate::{chunks::CHUNK_SIZE, tile::Tile};
 
 struct GameState {
     characters: Vec<Character>,
@@ -150,8 +150,21 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     let mut ordered_characters: Vec<&Character> = game_state.characters.iter().collect();
     ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
 
+    let visible_tiles: Vec<&Tile> = game_state
+        .chunk_manager
+        .tiles
+        .iter()
+        .filter(|t| {
+            game_state
+                .camera
+                .target
+                .distance(Vector2::new(t.x_position as f32, t.y_position as f32))
+                < WINDOW_WIDTH as f32
+        })
+        .collect();
+
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
-        for tile in game_state.chunk_manager.tiles.iter() {
+        for tile in visible_tiles.iter() {
             let x = tile.x_position;
             let y = tile.y_position;
             let color = match tile.tile_type {
@@ -185,7 +198,7 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
         }
 
         if game_state.is_debug {
-            for tile in game_state.chunk_manager.tiles.iter() {
+            for tile in visible_tiles.iter() {
                 mode_2d.draw_text(
                     format!("{},{}", tile.tile_coords.x, tile.tile_coords.y).as_str(),
                     tile.x_position,
