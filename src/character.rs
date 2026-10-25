@@ -34,6 +34,9 @@ impl Character {
     pub fn pathfind_to_target(&mut self, target: Vector2, chunk_manager: &ChunkManager) {
         let self_coords = Tile::get_coords_from_position(self.position);
         let target_coords = Tile::get_coords_from_position(target);
+        if chunk_manager.get_tile_type_from_coords(target_coords) == TileType::Obstacle {
+            return;
+        }
 
         let route = self.build_route(self_coords, target_coords, chunk_manager);
         self.path = route;
@@ -50,6 +53,7 @@ impl Character {
             }
         }
     }
+
     fn build_route(
         &self,
         self_coords: Coords,
@@ -172,9 +176,6 @@ impl Character {
                     }
                     let mut largest_visible_index = 0;
                     for i in current_necessary_index..route.len() {
-                        // if i <= current_necessary_index {
-                        //     continue;
-                        // }
                         let current = route[current_necessary_index];
                         let next = route[i];
                         let mut can_see = true;
@@ -202,12 +203,12 @@ impl Character {
 
         possible_routes.sort_by(|a, b| get_route_length(a).total_cmp(&get_route_length(b)));
 
-        let shortest_route = possible_routes.iter().find(|r| get_route_length(r) > 0.0);
-        if let Some(shortest) = shortest_route {
-            shortest.clone()
-        } else {
-            vec![]
-        }
+        let shortest_route = possible_routes
+            .iter()
+            .find(|r| get_route_length(r) > 0.0)
+            .unwrap_or(&vec![])
+            .clone();
+        shortest_route
     }
 }
 
