@@ -41,7 +41,7 @@ fn main() {
         characters: vec![],
         obstacles: vec![],
         camera: camera,
-        chunk_manager: ChunkManager::new("memes"),
+        chunk_manager: ChunkManager::new(String::from("foobar")),
         is_debug: true,
     };
 
@@ -170,6 +170,7 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
             let color = match tile.tile_type {
                 TileType::Empty => Color::WHITE,
                 TileType::Obstacle => Color::BLACK,
+                TileType::Water => Color::POWDERBLUE,
             };
             mode_2d.draw_rectangle(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, color);
             mode_2d.draw_rectangle_lines(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, Color::GRAY);

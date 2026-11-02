@@ -2,7 +2,7 @@ use raylib::ffi::Vector2;
 
 use crate::chunks::CHUNK_TILE_SIZE;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tile {
     pub tile_coords: Coords,
     pub x_position: i32,
@@ -32,6 +32,7 @@ impl Tile {
 pub enum TileType {
     Empty,
     Obstacle,
+    Water,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]

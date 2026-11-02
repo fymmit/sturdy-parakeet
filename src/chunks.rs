@@ -16,21 +16,15 @@ pub struct Chunk {
 pub struct ChunkManager {
     pub tiles: Vec<Tile>,
     chunks: Vec<Chunk>,
-    rng: SmallRng,
+    seed: String,
 }
 
 impl ChunkManager {
-    pub fn new(seed_str: &str) -> Self {
-        let bytes: Vec<u8> = seed_str.bytes().collect();
-        let mut seed: u64 = 0;
-        for b in bytes.iter() {
-            seed += *b as u64;
-        }
-        let rng = SmallRng::seed_from_u64(seed);
+    pub fn new(seed_str: String) -> Self {
         Self {
             tiles: vec![],
             chunks: vec![],
-            rng,
+            seed: seed_str,
         }
     }
     pub fn generate_chunk(&mut self, position: Vector2) {
@@ -38,26 +32,96 @@ impl ChunkManager {
         let x_coord = chunk_x * CHUNK_SIZE;
         let chunk_y = (position.y / CHUNK_SIZE as f32).floor() as i32;
         let y_coord = chunk_y * CHUNK_SIZE;
+        let chunk_seed = format!("{}{}{}", self.seed, chunk_x, chunk_y);
+        let bytes: Vec<u8> = chunk_seed.bytes().collect();
+        let mut seed: u64 = 0;
+        for b in bytes.iter() {
+            seed += *b as u64;
+        }
+        let mut rng = SmallRng::seed_from_u64(seed);
         println!("Generating a chunk at: {}, {}", chunk_x, chunk_y);
         let mut tiles: Vec<Tile> = vec![];
+        let mut tile_coords: Vec<Coords> = vec![];
         for x in 0..CHUNK_TILE_COUNT {
             for y in 0..CHUNK_TILE_COUNT {
-                let tile_should_be_obstacle = self.rng.random_range(0..5) == 0;
-                let tile_type = if tile_should_be_obstacle {
-                    TileType::Obstacle
-                } else {
-                    TileType::Empty
-                };
                 let x_position = x_coord + x * CHUNK_TILE_SIZE;
                 let y_position = y_coord + y * CHUNK_TILE_SIZE;
                 let x = chunk_x * CHUNK_TILE_COUNT + x;
                 let y = chunk_y * CHUNK_TILE_COUNT + y;
+                let tile_random_value = rng.random_range(0..100);
+                let tile_type = if tile_random_value == 0 {
+                    TileType::Water
+                } else {
+                    TileType::Empty
+                };
+                let coords = Coords { x, y };
+                tile_coords.push(coords);
                 tiles.push(Tile {
-                    tile_coords: Coords { x, y },
+                    tile_coords: coords,
                     x_position,
                     y_position,
                     tile_type,
                 });
+            }
+        }
+        loop {
+            let mut water_was_added = false;
+            let tiles_clone = tiles.clone();
+            for tile in tiles.iter_mut() {
+                if tile.tile_type == TileType::Water {
+                    continue;
+                }
+                let coords = tile.tile_coords;
+                let tile_random_value = rng.random_range(0..10);
+                let neighbor_tiles: Vec<&Tile> = tiles_clone
+                    .iter()
+                    .filter(|t| {
+                        t.tile_coords
+                            == Coords {
+                                x: coords.x + 1,
+                                y: coords.y,
+                            }
+                            || t.tile_coords
+                                == Coords {
+                                    x: coords.x - 1,
+                                    y: coords.y,
+                                }
+                            || t.tile_coords
+                                == Coords {
+                                    x: coords.x,
+                                    y: coords.y + 1,
+                                }
+                            || t.tile_coords
+                                == Coords {
+                                    x: coords.x,
+                                    y: coords.y - 1,
+                                }
+                    })
+                    .collect();
+                let has_neighboring_water = if let Some(_) = neighbor_tiles
+                    .iter()
+                    .find(|t| t.tile_type == TileType::Water)
+                {
+                    true
+                } else {
+                    false
+                };
+
+                if has_neighboring_water && tile_random_value == 0 {
+                    tile.tile_type = TileType::Water;
+                    water_was_added = true;
+                }
+            }
+            if !water_was_added {
+                break;
+            }
+        }
+        for tile in tiles.iter_mut() {
+            if tile.tile_type == TileType::Empty {
+                let tile_random_value = rng.random_range(0..20);
+                if tile_random_value == 0 {
+                    tile.tile_type = TileType::Obstacle;
+                }
             }
         }
 
