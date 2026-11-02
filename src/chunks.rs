@@ -98,14 +98,10 @@ impl ChunkManager {
                                 }
                     })
                     .collect();
-                let has_neighboring_water = if let Some(_) = neighbor_tiles
+
+                let has_neighboring_water = neighbor_tiles
                     .iter()
-                    .find(|t| t.tile_type == TileType::Water)
-                {
-                    true
-                } else {
-                    false
-                };
+                    .any(|t| t.tile_type == TileType::Water);
 
                 if has_neighboring_water && tile_random_value == 0 {
                     tile.tile_type = TileType::Water;
