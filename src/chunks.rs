@@ -1,3 +1,4 @@
+use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
 use rand::rngs::SmallRng;
 use raylib::ffi::{Rectangle, Vector2};
@@ -14,7 +15,9 @@ pub struct Chunk {
 }
 
 pub struct ChunkManager {
+    // FIX: use HashMap for tiles, should be far better
     pub tiles: Vec<Tile>,
+    perlin: Perlin,
     chunks: Vec<Chunk>,
     seed: String,
 }
@@ -25,6 +28,7 @@ impl ChunkManager {
             tiles: vec![],
             chunks: vec![],
             seed: seed_str,
+            perlin: Perlin::new(5),
         }
     }
     pub fn generate_chunk(&mut self, position: Vector2) {
@@ -41,21 +45,25 @@ impl ChunkManager {
         let mut rng = SmallRng::seed_from_u64(seed);
         println!("Generating a chunk at: {}, {}", chunk_x, chunk_y);
         let mut tiles: Vec<Tile> = vec![];
-        let mut tile_coords: Vec<Coords> = vec![];
         for x in 0..CHUNK_TILE_COUNT {
             for y in 0..CHUNK_TILE_COUNT {
                 let x_position = x_coord + x * CHUNK_TILE_SIZE;
                 let y_position = y_coord + y * CHUNK_TILE_SIZE;
+
+                let coefficient = 0.001;
+                let noise_x = x_position as f64 * coefficient;
+                let noise_y = y_position as f64 * coefficient;
+                let noise_value = self.perlin.get([noise_x, noise_y]);
+
                 let x = chunk_x * CHUNK_TILE_COUNT + x;
                 let y = chunk_y * CHUNK_TILE_COUNT + y;
-                let tile_random_value = rng.random_range(0..100);
-                let tile_type = if tile_random_value == 0 {
+
+                let tile_type = if noise_value > 0.3 {
                     TileType::Water
                 } else {
                     TileType::Empty
                 };
                 let coords = Coords { x, y };
-                tile_coords.push(coords);
                 tiles.push(Tile {
                     tile_coords: coords,
                     x_position,
@@ -64,54 +72,7 @@ impl ChunkManager {
                 });
             }
         }
-        loop {
-            let mut water_was_added = false;
-            let tiles_clone = tiles.clone();
-            for tile in tiles.iter_mut() {
-                if tile.tile_type == TileType::Water {
-                    continue;
-                }
-                let coords = tile.tile_coords;
-                let tile_random_value = rng.random_range(0..10);
-                let neighbor_tiles: Vec<&Tile> = tiles_clone
-                    .iter()
-                    .filter(|t| {
-                        t.tile_coords
-                            == Coords {
-                                x: coords.x + 1,
-                                y: coords.y,
-                            }
-                            || t.tile_coords
-                                == Coords {
-                                    x: coords.x - 1,
-                                    y: coords.y,
-                                }
-                            || t.tile_coords
-                                == Coords {
-                                    x: coords.x,
-                                    y: coords.y + 1,
-                                }
-                            || t.tile_coords
-                                == Coords {
-                                    x: coords.x,
-                                    y: coords.y - 1,
-                                }
-                    })
-                    .collect();
 
-                let has_neighboring_water = neighbor_tiles
-                    .iter()
-                    .any(|t| t.tile_type == TileType::Water);
-
-                if has_neighboring_water && tile_random_value == 0 {
-                    tile.tile_type = TileType::Water;
-                    water_was_added = true;
-                }
-            }
-            if !water_was_added {
-                break;
-            }
-        }
         for tile in tiles.iter_mut() {
             if tile.tile_type == TileType::Empty {
                 let tile_random_value = rng.random_range(0..20);
