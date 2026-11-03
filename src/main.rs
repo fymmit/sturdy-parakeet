@@ -155,19 +155,18 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
         .tiles
         .iter()
         .filter(|(_, t)| {
-            game_state
-                .camera
-                .target
-                .distance(Vector2::new(t.x_position as f32, t.y_position as f32))
-                < WINDOW_WIDTH as f32
+            game_state.camera.target.distance(Vector2::new(
+                t.global_position_x as f32,
+                t.global_position_y as f32,
+            )) < WINDOW_WIDTH as f32
         })
         .map(|(_, t)| t)
         .collect();
 
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
         for tile in visible_tiles.iter() {
-            let x = tile.x_position;
-            let y = tile.y_position;
+            let x = tile.global_position_x;
+            let y = tile.global_position_y;
             let color = match tile.tile_type {
                 TileType::Empty => Color::WHITE,
                 TileType::Obstacle => Color::BLACK,
@@ -203,8 +202,8 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
             for tile in visible_tiles.iter() {
                 mode_2d.draw_text(
                     format!("{},{}", tile.tile_coords.x, tile.tile_coords.y).as_str(),
-                    tile.x_position,
-                    tile.y_position,
+                    tile.global_position_x,
+                    tile.global_position_y,
                     16,
                     Color::GRAY,
                 );

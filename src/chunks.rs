@@ -11,6 +11,8 @@ pub const CHUNK_TILE_COUNT: i32 = 16;
 pub const CHUNK_TILE_SIZE: i32 = 64;
 pub const CHUNK_SIZE: i32 = CHUNK_TILE_COUNT * CHUNK_TILE_SIZE;
 
+const NOISE_COEFFICIENT: f64 = 0.1;
+
 pub struct Chunk {
     pub x: i32,
     pub y: i32,
@@ -48,16 +50,14 @@ impl ChunkManager {
         let mut tiles: Vec<Tile> = vec![];
         for x in 0..CHUNK_TILE_COUNT {
             for y in 0..CHUNK_TILE_COUNT {
-                let x_position = x_coord + x * CHUNK_TILE_SIZE;
-                let y_position = y_coord + y * CHUNK_TILE_SIZE;
-
-                let coefficient = 0.001;
-                let noise_x = x_position as f64 * coefficient;
-                let noise_y = y_position as f64 * coefficient;
-                let noise_value = self.perlin.get([noise_x, noise_y]);
-
+                let global_position_x = x_coord + x * CHUNK_TILE_SIZE;
+                let global_position_y = y_coord + y * CHUNK_TILE_SIZE;
                 let x = chunk_x * CHUNK_TILE_COUNT + x;
                 let y = chunk_y * CHUNK_TILE_COUNT + y;
+
+                let noise_x = x as f64 * NOISE_COEFFICIENT;
+                let noise_y = y as f64 * NOISE_COEFFICIENT;
+                let noise_value = self.perlin.get([noise_x, noise_y]);
 
                 let tile_type = if noise_value > 0.3 {
                     TileType::Water
@@ -67,8 +67,8 @@ impl ChunkManager {
                 let coords = Coords { x, y };
                 tiles.push(Tile {
                     tile_coords: coords,
-                    x_position,
-                    y_position,
+                    global_position_x,
+                    global_position_y,
                     tile_type,
                 });
             }

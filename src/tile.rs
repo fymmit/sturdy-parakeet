@@ -5,8 +5,8 @@ use crate::chunks::CHUNK_TILE_SIZE;
 #[derive(Debug, Clone)]
 pub struct Tile {
     pub tile_coords: Coords,
-    pub x_position: i32,
-    pub y_position: i32,
+    pub global_position_x: i32,
+    pub global_position_y: i32,
     pub tile_type: TileType,
 }
 
