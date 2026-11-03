@@ -158,9 +158,10 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
             game_state
                 .camera
                 .target
-                .distance(Vector2::new(t.x_position as f32, t.y_position as f32))
+                .distance(Vector2::new(t.1.x_position as f32, t.1.y_position as f32))
                 < WINDOW_WIDTH as f32
         })
+        .map(|t| t.1)
         .collect();
 
     d.draw_mode2D(game_state.camera, |mut mode_2d| {

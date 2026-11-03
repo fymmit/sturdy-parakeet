@@ -105,7 +105,6 @@ impl Character {
                 };
 
                 if candidate_coords == self_coords {
-                    println!("path done");
                     break;
                 }
 
@@ -147,7 +146,6 @@ impl Character {
                     bad_coords.push(current_coords);
                     route.pop();
                 } else {
-                    println!("pushing to route: {:?}", candidate_coords);
                     route.push(candidate_coords);
                     current_coords = candidate_coords;
                 }
@@ -167,7 +165,8 @@ impl Character {
                 let obstacles: Vec<&Tile> = chunk_manager
                     .tiles
                     .iter()
-                    .filter(|t| t.tile_type == TileType::Obstacle)
+                    .filter(|t| t.1.tile_type == TileType::Obstacle)
+                    .map(|t| t.1)
                     .collect();
 
                 for foo in 0..route.len() {
@@ -223,6 +222,5 @@ fn get_route_length(route: &Vec<Vector2>) -> f32 {
         let distance = waypoint.distance(prev);
         route_length += distance;
     }
-    println!("Route length: {}", route_length);
     route_length
 }

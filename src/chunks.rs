@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
 use rand::rngs::SmallRng;
@@ -15,8 +17,7 @@ pub struct Chunk {
 }
 
 pub struct ChunkManager {
-    // FIX: use HashMap for tiles, should be far better
-    pub tiles: Vec<Tile>,
+    pub tiles: HashMap<Coords, Tile>,
     perlin: Perlin,
     chunks: Vec<Chunk>,
     seed: String,
@@ -25,7 +26,7 @@ pub struct ChunkManager {
 impl ChunkManager {
     pub fn new(seed_str: String) -> Self {
         Self {
-            tiles: vec![],
+            tiles: HashMap::new(),
             chunks: vec![],
             seed: seed_str,
             perlin: Perlin::new(5),
@@ -82,7 +83,9 @@ impl ChunkManager {
             }
         }
 
-        self.tiles.append(&mut tiles);
+        for tile in tiles.iter() {
+            self.tiles.insert(tile.tile_coords, tile.clone());
+        }
 
         self.chunks.push(Chunk {
             x: x_coord,
@@ -101,7 +104,7 @@ impl ChunkManager {
         })
     }
     pub fn get_tile_type_from_coords(&self, coords: Coords) -> TileType {
-        let tile = &self.tiles.iter().find(|t| t.tile_coords == coords);
+        let tile = &self.tiles.get(&coords);
 
         if let Some(tile) = tile {
             tile.tile_type

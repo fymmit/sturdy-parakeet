@@ -35,7 +35,7 @@ pub enum TileType {
     Water,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Hash)]
 pub struct Coords {
     pub x: i32,
     pub y: i32,
