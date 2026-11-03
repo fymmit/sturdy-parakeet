@@ -165,8 +165,8 @@ impl Character {
                 let obstacles: Vec<&Tile> = chunk_manager
                     .tiles
                     .iter()
-                    .filter(|t| t.1.tile_type == TileType::Obstacle)
-                    .map(|t| t.1)
+                    .filter(|(_, t)| t.tile_type == TileType::Obstacle)
+                    .map(|(_, t)| t)
                     .collect();
 
                 for foo in 0..route.len() {
