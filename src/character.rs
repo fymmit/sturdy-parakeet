@@ -1,4 +1,4 @@
-use raylib::ffi::Vector2;
+use raylib::math::Vector2;
 
 use crate::{
     chunks::{CHUNK_TILE_SIZE, ChunkManager},

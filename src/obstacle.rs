@@ -1,4 +1,4 @@
-use raylib::ffi::Vector2;
+use raylib::math::Vector2;
 
 pub struct Obstacle {
     pub position: Vector2,

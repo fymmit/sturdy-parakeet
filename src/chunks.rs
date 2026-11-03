@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
 use rand::rngs::SmallRng;
-use raylib::ffi::{Rectangle, Vector2};
+use raylib::math::{Rectangle, Vector2};
 
 use crate::tile::{Coords, Tile, TileType};
 
