@@ -151,9 +151,17 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     let mut ordered_characters: Vec<&Character> = game_state.characters.iter().collect();
     ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
 
-    let visible_tiles = game_state
+    let visible_tiles: Vec<tile::Tile> = game_state
         .chunk_manager
-        .get_tiles_from_chunks_around_position(player_pos);
+        .get_tiles_from_chunks_around_position(player_pos)
+        .into_iter()
+        .filter(|tile| {
+            game_state.camera.target.distance(Vector2::new(
+                tile.global_position_x as f32,
+                tile.global_position_y as f32,
+            )) < WINDOW_WIDTH as f32
+        })
+        .collect();
 
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
         for tile in visible_tiles.iter() {
