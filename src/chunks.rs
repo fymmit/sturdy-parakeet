@@ -60,11 +60,12 @@ impl ChunkManager {
                 let noise_y = y as f64 * NOISE_COEFFICIENT;
                 let noise_value = self.perlin.get([noise_x, noise_y]);
 
-                let tile_type = if noise_value > 0.3 {
-                    TileType::Water
-                } else {
-                    TileType::Empty
+                let tile_type = match noise_value {
+                    ..-0.3 => TileType::Water,
+                    0.7.. => TileType::Obstacle,
+                    _ => TileType::Empty,
                 };
+
                 let coords = Coords { x, y };
                 tiles.push(Tile {
                     tile_coords: coords,
@@ -72,15 +73,6 @@ impl ChunkManager {
                     global_position_y,
                     tile_type,
                 });
-            }
-        }
-
-        for tile in tiles.iter_mut() {
-            if tile.tile_type == TileType::Empty {
-                let tile_random_value = rng.random_range(0..20);
-                if tile_random_value == 0 {
-                    tile.tile_type = TileType::Obstacle;
-                }
             }
         }
 
