@@ -31,14 +31,19 @@ impl Character {
         }
     }
 
-    pub fn pathfind_to_target(&mut self, target: Vector2, chunk_manager: &ChunkManager) {
+    pub fn pathfind_to_target(
+        &mut self,
+        target: Vector2,
+        chunk_manager: &ChunkManager,
+        visible_tiles: &Vec<Tile>,
+    ) {
         let self_coords = Tile::get_coords_from_position(self.position);
         let target_coords = Tile::get_coords_from_position(target);
         if chunk_manager.get_tile_type_from_coords(target_coords) == TileType::Obstacle {
             return;
         }
 
-        let route = self.build_route(self_coords, target_coords, chunk_manager);
+        let route = self.build_route(self_coords, target_coords, chunk_manager, visible_tiles);
         self.path = route;
     }
 
@@ -59,6 +64,7 @@ impl Character {
         self_coords: Coords,
         target_coords: Coords,
         chunk_manager: &ChunkManager,
+        visible_tiles: &Vec<Tile>,
     ) -> Vec<Vector2> {
         let mut possible_routes: Vec<Vec<Vector2>> = vec![];
 
@@ -162,11 +168,9 @@ impl Character {
                 let mut current_necessary_index = 0;
                 necessary_waypoints.push(route[current_necessary_index]);
 
-                let obstacles: Vec<&Tile> = chunk_manager
-                    .tiles
+                let obstacles: Vec<&Tile> = visible_tiles
                     .iter()
-                    .filter(|(_, t)| t.tile_type == TileType::Obstacle)
-                    .map(|(_, t)| t)
+                    .filter(|t| t.tile_type == TileType::Obstacle)
                     .collect();
 
                 for foo in 0..route.len() {
