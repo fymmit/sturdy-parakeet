@@ -14,8 +14,8 @@ pub const CHUNK_SIZE: i32 = CHUNK_TILE_COUNT * CHUNK_TILE_SIZE;
 const NOISE_COEFFICIENT: f64 = 0.1;
 
 pub struct Chunk {
-    pub x: i32,
-    pub y: i32,
+    pub coords: Coords,
+    pub tiles: Vec<Tile>,
 }
 
 pub struct ChunkManager {
@@ -34,6 +34,7 @@ impl ChunkManager {
             perlin: Perlin::new(5),
         }
     }
+
     pub fn generate_chunk(&mut self, position: Vector2) {
         let chunk_x = (position.x / CHUNK_SIZE as f32).floor() as i32;
         let x_coord = chunk_x * CHUNK_SIZE;
@@ -88,21 +89,51 @@ impl ChunkManager {
         }
 
         self.chunks.push(Chunk {
-            x: x_coord,
-            y: y_coord,
+            coords: Coords {
+                x: x_coord,
+                y: y_coord,
+            },
+            tiles,
         });
     }
+
     pub fn is_chunk_generated(&self, position: Vector2) -> bool {
         self.chunks.iter().any(|chunk| {
             let rec = Rectangle::new(
-                chunk.x as f32,
-                chunk.y as f32,
+                chunk.coords.x as f32,
+                chunk.coords.y as f32,
                 CHUNK_SIZE as f32,
                 CHUNK_SIZE as f32,
             );
             rec.check_collision_point_rec(position)
         })
     }
+
+    pub fn get_tiles_from_chunks_around_position(&self, position: Vector2) -> Vec<Tile> {
+        let chunk_size = CHUNK_SIZE as f32;
+        let position_rec = Rectangle {
+            x: position.x - chunk_size,
+            y: position.y - chunk_size,
+            width: chunk_size * 2.0,
+            height: chunk_size * 2.0,
+        };
+        let tiles: Vec<Tile> = self
+            .chunks
+            .iter()
+            .filter(|chunk| {
+                let rec = Rectangle::new(
+                    chunk.coords.x as f32,
+                    chunk.coords.y as f32,
+                    CHUNK_SIZE as f32,
+                    CHUNK_SIZE as f32,
+                );
+                rec.check_collision_recs(position_rec)
+            })
+            .flat_map(|chunk| chunk.tiles.clone())
+            .collect();
+        tiles
+    }
+
     pub fn get_tile_type_from_coords(&self, coords: Coords) -> TileType {
         let tile = &self.tiles.get(&coords);
 
