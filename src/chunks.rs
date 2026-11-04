@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
 use noise::{NoiseFn, Perlin};
-use rand::prelude::*;
-use rand::rngs::SmallRng;
 use raylib::math::{Rectangle, Vector2};
 
 use crate::tile::{Coords, Tile, TileType};
@@ -22,15 +20,13 @@ pub struct ChunkManager {
     pub tiles: HashMap<Coords, Tile>,
     perlin: Perlin,
     chunks: Vec<Chunk>,
-    seed: String,
 }
 
 impl ChunkManager {
-    pub fn new(seed_str: String) -> Self {
+    pub fn new() -> Self {
         Self {
             tiles: HashMap::new(),
             chunks: vec![],
-            seed: seed_str,
             perlin: Perlin::new(5),
         }
     }
@@ -40,14 +36,6 @@ impl ChunkManager {
         let x_coord = chunk_x * CHUNK_SIZE;
         let chunk_y = (position.y / CHUNK_SIZE as f32).floor() as i32;
         let y_coord = chunk_y * CHUNK_SIZE;
-        let chunk_seed = format!("{}{}{}", self.seed, chunk_x, chunk_y);
-        let bytes: Vec<u8> = chunk_seed.bytes().collect();
-        let mut seed: u64 = 0;
-        for b in bytes.iter() {
-            seed += *b as u64;
-        }
-        let mut rng = SmallRng::seed_from_u64(seed);
-        println!("Generating a chunk at: {}, {}", chunk_x, chunk_y);
         let mut tiles: Vec<Tile> = vec![];
         for x in 0..CHUNK_TILE_COUNT {
             for y in 0..CHUNK_TILE_COUNT {

@@ -43,7 +43,7 @@ fn main() {
         characters: vec![],
         obstacles: vec![],
         camera: camera,
-        chunk_manager: ChunkManager::new(String::from("foobar")),
+        chunk_manager: ChunkManager::new(),
         visible_tiles: vec![],
         is_debug: true,
     };
