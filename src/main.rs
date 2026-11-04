@@ -8,6 +8,7 @@ use raylib::prelude::*;
 use character::{Character, CharacterType};
 use chunks::{CHUNK_TILE_SIZE, ChunkManager};
 use obstacle::Obstacle;
+use tile::Tile;
 use tile::TileType;
 
 use crate::chunks::CHUNK_SIZE;
@@ -17,6 +18,7 @@ struct GameState {
     obstacles: Vec<Obstacle>,
     camera: Camera2D,
     chunk_manager: ChunkManager,
+    visible_tiles: Vec<Tile>,
     is_debug: bool,
 }
 
@@ -42,6 +44,7 @@ fn main() {
         obstacles: vec![],
         camera: camera,
         chunk_manager: ChunkManager::new(String::from("foobar")),
+        visible_tiles: vec![],
         is_debug: true,
     };
 
@@ -142,16 +145,8 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
             }
         }
     }
-}
 
-fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
-    d.clear_background(Color::WHITE);
-
-    let player_pos = game_state.characters.first().unwrap().position;
-    let mut ordered_characters: Vec<&Character> = game_state.characters.iter().collect();
-    ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
-
-    let visible_tiles: Vec<tile::Tile> = game_state
+    game_state.visible_tiles = game_state
         .chunk_manager
         .get_tiles_from_chunks_around_position(player_pos)
         .into_iter()
@@ -162,9 +157,16 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
             )) < WINDOW_WIDTH as f32
         })
         .collect();
+}
+
+fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
+    d.clear_background(Color::WHITE);
+
+    let mut ordered_characters: Vec<&Character> = game_state.characters.iter().collect();
+    ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
 
     d.draw_mode2D(game_state.camera, |mut mode_2d| {
-        for tile in visible_tiles.iter() {
+        for tile in game_state.visible_tiles.iter() {
             let x = tile.global_position_x;
             let y = tile.global_position_y;
             let color = match tile.tile_type {
@@ -199,7 +201,7 @@ fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
         }
 
         if game_state.is_debug {
-            for tile in visible_tiles.iter() {
+            for tile in game_state.visible_tiles.iter() {
                 mode_2d.draw_text(
                     format!("{},{}", tile.tile_coords.x, tile.tile_coords.y).as_str(),
                     tile.global_position_x,
