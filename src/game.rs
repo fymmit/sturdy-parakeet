@@ -2,13 +2,11 @@ use raylib::prelude::*;
 
 use crate::WINDOW_WIDTH;
 use crate::character::{Character, CharacterType};
-use crate::obstacle::Obstacle;
 use crate::world::chunks::ChunkManager;
 use crate::world::tile::Tile;
 
 pub struct GameState {
     pub characters: Vec<Character>,
-    pub obstacles: Vec<Obstacle>,
     pub camera: Camera2D,
     pub chunk_manager: ChunkManager,
     pub visible_tiles: Vec<Tile>,
@@ -84,20 +82,6 @@ impl GameState {
                 }
             }
             character.move_character(delta);
-        }
-
-        for obstacle in self.obstacles.iter() {
-            for character in self.characters.iter_mut() {
-                while raylib::check_collision_circles(
-                    obstacle.position,
-                    obstacle.radius,
-                    character.position,
-                    16.0,
-                ) {
-                    let push_direction = (character.position - obstacle.position).normalize();
-                    character.position += push_direction;
-                }
-            }
         }
 
         self.visible_tiles = self

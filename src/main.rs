@@ -1,6 +1,5 @@
 mod character;
 mod game;
-mod obstacle;
 mod pathfinding;
 mod rendering;
 mod world;
@@ -32,7 +31,6 @@ fn main() {
 
     let mut game_state = GameState {
         characters: vec![],
-        obstacles: vec![],
         camera: camera,
         chunk_manager: ChunkManager::new(),
         visible_tiles: vec![],

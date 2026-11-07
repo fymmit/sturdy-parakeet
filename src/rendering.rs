@@ -24,15 +24,6 @@ pub fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
             mode_2d.draw_rectangle_lines(x, y, TILE_SIZE, TILE_SIZE, Color::GRAY);
         }
 
-        for obstacle in game_state.obstacles.iter() {
-            mode_2d.draw_circle(
-                obstacle.position.x as i32,
-                obstacle.position.y as i32,
-                obstacle.radius,
-                Color::BLACK,
-            );
-        }
-
         for character in ordered_characters.iter() {
             let color = match character.character_type {
                 CharacterType::Player => Color::GREEN,
@@ -54,14 +45,6 @@ pub fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
                     tile.global_position_y,
                     16,
                     Color::GRAY,
-                );
-            }
-            for obstacle in game_state.obstacles.iter() {
-                mode_2d.draw_circle(
-                    obstacle.position.x as i32,
-                    obstacle.position.y as i32,
-                    obstacle.radius + ordered_characters.first().unwrap().radius,
-                    Color::BLACK.alpha(0.5),
                 );
             }
             for character in game_state.characters.iter() {
