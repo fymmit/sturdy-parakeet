@@ -3,11 +3,10 @@ use std::collections::HashMap;
 use noise::{NoiseFn, Perlin};
 use raylib::math::{Rectangle, Vector2};
 
-use crate::tile::{Coords, Tile, TileType};
+use super::tile::{Coords, TILE_SIZE, Tile, TileType};
 
 pub const CHUNK_TILE_COUNT: i32 = 16;
-pub const CHUNK_TILE_SIZE: i32 = 64;
-pub const CHUNK_SIZE: i32 = CHUNK_TILE_COUNT * CHUNK_TILE_SIZE;
+pub const CHUNK_SIZE: i32 = CHUNK_TILE_COUNT * TILE_SIZE;
 
 const NOISE_COEFFICIENT: f64 = 0.1;
 
@@ -39,8 +38,8 @@ impl ChunkManager {
         let mut tiles: Vec<Tile> = vec![];
         for x in 0..CHUNK_TILE_COUNT {
             for y in 0..CHUNK_TILE_COUNT {
-                let global_position_x = x_coord + x * CHUNK_TILE_SIZE;
-                let global_position_y = y_coord + y * CHUNK_TILE_SIZE;
+                let global_position_x = x_coord + x * TILE_SIZE;
+                let global_position_y = y_coord + y * TILE_SIZE;
                 let x = chunk_x * CHUNK_TILE_COUNT + x;
                 let y = chunk_y * CHUNK_TILE_COUNT + y;
 

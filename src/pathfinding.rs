@@ -1,7 +1,7 @@
 use raylib::ffi::Vector2;
 
-use crate::chunks::{CHUNK_TILE_SIZE, ChunkManager};
-use crate::tile::{Coords, Tile, TileType};
+use crate::world::chunks::ChunkManager;
+use crate::world::tile::{Coords, TILE_SIZE, Tile, TileType};
 
 pub fn pathfind_to_target(
     start: Vector2,
@@ -157,7 +157,7 @@ fn build_route(
                     let mut can_see = true;
                     for &obstacle in obstacles.iter() {
                         let center = Tile::get_center_from_coords(obstacle.tile_coords);
-                        let radius = (CHUNK_TILE_SIZE as f32 / 2.0) * 1.8;
+                        let radius = (TILE_SIZE as f32 / 2.0) * 1.8;
                         if raylib::check_collision_circle_line(center, radius, current, next) {
                             can_see = false;
                             break;

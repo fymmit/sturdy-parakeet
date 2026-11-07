@@ -2,9 +2,8 @@ use raylib::ffi::Color;
 use raylib::prelude::*;
 
 use crate::character::{Character, CharacterType};
-use crate::chunks::CHUNK_TILE_SIZE;
 use crate::game::GameState;
-use crate::tile::TileType;
+use crate::world::tile::{TILE_SIZE, TileType};
 
 pub fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     d.clear_background(Color::WHITE);
@@ -21,8 +20,8 @@ pub fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
                 TileType::Obstacle => Color::BLACK,
                 TileType::Water => Color::POWDERBLUE,
             };
-            mode_2d.draw_rectangle(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, color);
-            mode_2d.draw_rectangle_lines(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, Color::GRAY);
+            mode_2d.draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, color);
+            mode_2d.draw_rectangle_lines(x, y, TILE_SIZE, TILE_SIZE, Color::GRAY);
         }
 
         for obstacle in game_state.obstacles.iter() {

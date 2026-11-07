@@ -1,8 +1,8 @@
 use raylib::math::Vector2;
 
-use crate::chunks::ChunkManager;
 use crate::pathfinding;
-use crate::tile::Tile;
+use crate::world::chunks::ChunkManager;
+use crate::world::tile::Tile;
 
 pub enum CharacterType {
     Player,

@@ -1,16 +1,16 @@
 mod character;
-mod chunks;
 mod game;
 mod obstacle;
 mod pathfinding;
 mod rendering;
-mod tile;
+mod world;
 
 use raylib::prelude::*;
 
 use crate::character::{Character, CharacterType};
-use crate::chunks::{CHUNK_SIZE, CHUNK_TILE_SIZE, ChunkManager};
 use crate::game::GameState;
+use crate::world::chunks::{CHUNK_SIZE, ChunkManager};
+use crate::world::tile::TILE_SIZE;
 
 const WINDOW_WIDTH: i32 = 800;
 const WINDOW_HEIGHT: i32 = 600;
@@ -46,8 +46,8 @@ fn main() {
     let player = Character::new(
         CharacterType::Player,
         Vector2::new(
-            (CHUNK_SIZE / 2 + CHUNK_TILE_SIZE / 2) as f32,
-            (CHUNK_SIZE / 2 + CHUNK_TILE_SIZE / 2) as f32,
+            (CHUNK_SIZE / 2 + TILE_SIZE / 2) as f32,
+            (CHUNK_SIZE / 2 + TILE_SIZE / 2) as f32,
         ),
         200.0,
     );

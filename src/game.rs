@@ -2,9 +2,9 @@ use raylib::prelude::*;
 
 use crate::WINDOW_WIDTH;
 use crate::character::{Character, CharacterType};
-use crate::chunks::ChunkManager;
 use crate::obstacle::Obstacle;
-use crate::tile::Tile;
+use crate::world::chunks::ChunkManager;
+use crate::world::tile::Tile;
 
 pub struct GameState {
     pub characters: Vec<Character>,
