@@ -31,7 +31,7 @@ fn main() {
 
     let mut game_state = GameState {
         characters: vec![],
-        camera: camera,
+        camera,
         chunk_manager: ChunkManager::new(),
         visible_tiles: vec![],
         is_debug: true,

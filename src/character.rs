@@ -34,7 +34,7 @@ impl Character {
         &mut self,
         target_position: Vector2,
         chunk_manager: &ChunkManager,
-        visible_tiles: &Vec<Tile>,
+        visible_tiles: &[Tile],
     ) {
         if let Some(route) = pathfinding::pathfind_to_target(
             self.position,

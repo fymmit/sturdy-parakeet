@@ -7,7 +7,7 @@ pub fn pathfind_to_target(
     start: Vector2,
     target: Vector2,
     chunk_manager: &ChunkManager,
-    visible_tiles: &Vec<Tile>,
+    visible_tiles: &[Tile],
 ) -> Option<Vec<Vector2>> {
     let start_coords = Tile::get_coords_from_position(start);
     let target_coords = Tile::get_coords_from_position(target);
@@ -37,7 +37,7 @@ fn build_route(
     self_coords: Coords,
     target_coords: Coords,
     chunk_manager: &ChunkManager,
-    visible_tiles: &Vec<Tile>,
+    visible_tiles: &[Tile],
 ) -> Vec<Vector2> {
     let mut possible_routes: Vec<Vec<Vector2>> = vec![];
 
@@ -146,8 +146,8 @@ fn build_route(
                 .filter(|t| t.tile_type == TileType::Obstacle)
                 .collect();
 
-            for foo in 0..route.len() {
-                if foo <= current_necessary_index {
+            for index in 0..route.len() {
+                if index <= current_necessary_index {
                     continue;
                 }
                 let mut largest_visible_index = 0;
@@ -179,15 +179,14 @@ fn build_route(
 
     possible_routes.sort_by(|a, b| get_route_length(a).total_cmp(&get_route_length(b)));
 
-    let shortest_route = possible_routes
+    possible_routes
         .iter()
         .find(|r| get_route_length(r) > 0.0)
         .unwrap_or(&vec![])
-        .clone();
-    shortest_route
+        .clone()
 }
 
-fn get_route_length(route: &Vec<Vector2>) -> f32 {
+fn get_route_length(route: &[Vector2]) -> f32 {
     let mut route_length: f32 = 0.0;
 
     for (i, waypoint) in route.iter().enumerate() {
