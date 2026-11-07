@@ -1,6 +1,7 @@
 mod character;
 mod chunks;
 mod obstacle;
+mod pathfinding;
 mod tile;
 
 use raylib::prelude::*;
@@ -110,7 +111,7 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
                     character.position = mouse_pos;
                 }
                 if left_mouse_clicked {
-                    character.pathfind_to_target(
+                    character.set_target_position(
                         mouse_pos,
                         &game_state.chunk_manager,
                         &game_state.visible_tiles,
@@ -122,7 +123,7 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
                 match last_route_point {
                     Some(&point) => {
                         if (point - player_pos).length() > 50.0 {
-                            character.pathfind_to_target(
+                            character.set_target_position(
                                 player_pos,
                                 &game_state.chunk_manager,
                                 &game_state.visible_tiles,
@@ -131,7 +132,7 @@ fn update(rl: &RaylibHandle, game_state: &mut GameState) {
                     }
                     None => {
                         if (character.position - player_pos).length() > 50.0 {
-                            character.pathfind_to_target(
+                            character.set_target_position(
                                 player_pos,
                                 &game_state.chunk_manager,
                                 &game_state.visible_tiles,
