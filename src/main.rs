@@ -1,27 +1,16 @@
 mod character;
 mod chunks;
+mod game;
 mod obstacle;
 mod pathfinding;
+mod rendering;
 mod tile;
 
 use raylib::prelude::*;
 
-use character::{Character, CharacterType};
-use chunks::{CHUNK_TILE_SIZE, ChunkManager};
-use obstacle::Obstacle;
-use tile::Tile;
-use tile::TileType;
-
-use crate::chunks::CHUNK_SIZE;
-
-struct GameState {
-    characters: Vec<Character>,
-    obstacles: Vec<Obstacle>,
-    camera: Camera2D,
-    chunk_manager: ChunkManager,
-    visible_tiles: Vec<Tile>,
-    is_debug: bool,
-}
+use crate::character::{Character, CharacterType};
+use crate::chunks::{CHUNK_SIZE, CHUNK_TILE_SIZE, ChunkManager};
+use crate::game::GameState;
 
 const WINDOW_WIDTH: i32 = 800;
 const WINDOW_HEIGHT: i32 = 600;
@@ -40,6 +29,7 @@ fn main() {
         zoom: 1.0,
         target: Vector2::zero(),
     };
+
     let mut game_state = GameState {
         characters: vec![],
         obstacles: vec![],
@@ -67,205 +57,10 @@ fn main() {
     game_state.characters.push(enemy);
 
     while !rl.window_should_close() {
-        update(&rl, &mut game_state);
+        game_state.update(&rl);
 
         let mut d = rl.begin_drawing(&thread);
 
-        draw(&mut d, &game_state);
+        rendering::draw(&mut d, &game_state);
     }
-}
-
-fn update(rl: &RaylibHandle, game_state: &mut GameState) {
-    let delta = rl.get_frame_time();
-
-    let mouse_pos = rl.get_mouse_position();
-    let mouse_pos = rl.get_screen_to_world2D(mouse_pos, game_state.camera);
-    let player_pos = game_state.characters.first().unwrap().position;
-
-    game_state.camera.target = Vector2 {
-        x: player_pos.x,
-        y: player_pos.y,
-    };
-
-    if rl.is_key_pressed(KeyboardKey::KEY_O) {
-        game_state.is_debug = !game_state.is_debug;
-    }
-
-    let left_mouse_clicked = rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT);
-
-    if !game_state.chunk_manager.is_chunk_generated(mouse_pos) {
-        game_state.chunk_manager.generate_chunk(mouse_pos);
-    }
-
-    let mouse_wheel_move = rl.get_mouse_wheel_move();
-    if mouse_wheel_move < 0.0 {
-        game_state.camera.zoom -= 0.1;
-    } else if mouse_wheel_move > 0.0 {
-        game_state.camera.zoom += 0.1;
-    }
-
-    for character in game_state.characters.iter_mut() {
-        match character.character_type {
-            CharacterType::Player => {
-                if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_RIGHT) {
-                    character.position = mouse_pos;
-                }
-                if left_mouse_clicked {
-                    character.set_target_position(
-                        mouse_pos,
-                        &game_state.chunk_manager,
-                        &game_state.visible_tiles,
-                    );
-                }
-            }
-            CharacterType::Enemy => {
-                let last_route_point = character.path.last();
-                match last_route_point {
-                    Some(&point) => {
-                        if (point - player_pos).length() > 50.0 {
-                            character.set_target_position(
-                                player_pos,
-                                &game_state.chunk_manager,
-                                &game_state.visible_tiles,
-                            );
-                        }
-                    }
-                    None => {
-                        if (character.position - player_pos).length() > 50.0 {
-                            character.set_target_position(
-                                player_pos,
-                                &game_state.chunk_manager,
-                                &game_state.visible_tiles,
-                            );
-                        }
-                    }
-                }
-            }
-        }
-        character.move_character(delta);
-    }
-
-    for obstacle in game_state.obstacles.iter() {
-        for character in game_state.characters.iter_mut() {
-            while raylib::check_collision_circles(
-                obstacle.position,
-                obstacle.radius,
-                character.position,
-                16.0,
-            ) {
-                let push_direction = (character.position - obstacle.position).normalize();
-                character.position += push_direction;
-            }
-        }
-    }
-
-    game_state.visible_tiles = game_state
-        .chunk_manager
-        .get_tiles_from_chunks_around_position(player_pos)
-        .into_iter()
-        .filter(|tile| {
-            game_state.camera.target.distance(Vector2::new(
-                tile.global_position_x as f32,
-                tile.global_position_y as f32,
-            )) < WINDOW_WIDTH as f32
-        })
-        .collect();
-}
-
-fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
-    d.clear_background(Color::WHITE);
-
-    let mut ordered_characters: Vec<&Character> = game_state.characters.iter().collect();
-    ordered_characters.sort_by(|a, b| a.position.y.total_cmp(&b.position.y));
-
-    d.draw_mode2D(game_state.camera, |mut mode_2d| {
-        for tile in game_state.visible_tiles.iter() {
-            let x = tile.global_position_x;
-            let y = tile.global_position_y;
-            let color = match tile.tile_type {
-                TileType::Empty => Color::WHITE,
-                TileType::Obstacle => Color::BLACK,
-                TileType::Water => Color::POWDERBLUE,
-            };
-            mode_2d.draw_rectangle(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, color);
-            mode_2d.draw_rectangle_lines(x, y, CHUNK_TILE_SIZE, CHUNK_TILE_SIZE, Color::GRAY);
-        }
-
-        for obstacle in game_state.obstacles.iter() {
-            mode_2d.draw_circle(
-                obstacle.position.x as i32,
-                obstacle.position.y as i32,
-                obstacle.radius,
-                Color::BLACK,
-            );
-        }
-
-        for character in ordered_characters.iter() {
-            let color = match character.character_type {
-                CharacterType::Player => Color::GREEN,
-                CharacterType::Enemy => Color::RED,
-            };
-            mode_2d.draw_circle(
-                character.position.x as i32,
-                character.position.y as i32,
-                character.radius,
-                color,
-            );
-        }
-
-        if game_state.is_debug {
-            for tile in game_state.visible_tiles.iter() {
-                mode_2d.draw_text(
-                    format!("{},{}", tile.tile_coords.x, tile.tile_coords.y).as_str(),
-                    tile.global_position_x,
-                    tile.global_position_y,
-                    16,
-                    Color::GRAY,
-                );
-            }
-            for obstacle in game_state.obstacles.iter() {
-                mode_2d.draw_circle(
-                    obstacle.position.x as i32,
-                    obstacle.position.y as i32,
-                    obstacle.radius + ordered_characters.first().unwrap().radius,
-                    Color::BLACK.alpha(0.5),
-                );
-            }
-            for character in game_state.characters.iter() {
-                let color = match character.character_type {
-                    CharacterType::Player => Color::LIME,
-                    CharacterType::Enemy => Color::HOTPINK,
-                };
-                for (i, waypoint) in character.path.iter().enumerate() {
-                    if i == 0 {
-                        mode_2d.draw_line(
-                            character.position.x as i32,
-                            character.position.y as i32,
-                            waypoint.x as i32,
-                            waypoint.y as i32,
-                            color,
-                        );
-                    } else if i < character.path.len() {
-                        mode_2d.draw_line(
-                            character.path.get(i - 1).unwrap().x as i32,
-                            character.path.get(i - 1).unwrap().y as i32,
-                            waypoint.x as i32,
-                            waypoint.y as i32,
-                            color,
-                        );
-                    }
-                    mode_2d.draw_circle(waypoint.x as i32, waypoint.y as i32, 4.0, color);
-                    mode_2d.draw_text(
-                        format!("{}, {}", waypoint.x, waypoint.y).as_str(),
-                        waypoint.x as i32 + 12,
-                        waypoint.y as i32,
-                        16,
-                        color,
-                    );
-                }
-            }
-        }
-    });
-
-    d.draw_fps(4, 4);
 }
