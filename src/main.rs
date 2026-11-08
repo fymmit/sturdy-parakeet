@@ -23,7 +23,7 @@ fn main() {
     rl.set_target_fps(150);
 
     let camera = camera::Camera2D {
-        rotation: 0.0,
+        rotation: -45.0,
         offset: Vector2::new((WINDOW_WIDTH / 2) as f32, (WINDOW_HEIGHT / 2) as f32),
         zoom: 1.0,
         target: Vector2::zero(),

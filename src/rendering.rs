@@ -3,7 +3,7 @@ use raylib::prelude::*;
 
 use crate::character::{Character, CharacterType};
 use crate::game::GameState;
-use crate::world::tile::{TILE_SIZE, TileType};
+use crate::world::tile::{TILE_SIZE, Tile, TileType};
 
 pub fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
     d.clear_background(Color::WHITE);
@@ -16,12 +16,11 @@ pub fn draw(d: &mut RaylibDrawHandle, game_state: &GameState) {
             let x = tile.global_position_x;
             let y = tile.global_position_y;
             let color = match tile.tile_type {
-                TileType::Empty => Color::WHITE,
+                TileType::Empty => Color::LIGHTGRAY,
                 TileType::Obstacle => Color::BLACK,
                 TileType::Water => Color::POWDERBLUE,
             };
-            mode_2d.draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, color);
-            mode_2d.draw_rectangle_lines(x, y, TILE_SIZE, TILE_SIZE, Color::GRAY);
+            mode_2d.draw_rectangle(x, y, TILE_SIZE - 8, TILE_SIZE - 8, color);
         }
 
         for character in ordered_characters.iter() {
